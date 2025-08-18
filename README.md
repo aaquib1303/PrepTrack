@@ -1,2 +1,2 @@
-# TechHustle
+# PrepTrack
 Interview Preparation Platform
