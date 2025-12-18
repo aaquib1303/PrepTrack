@@ -95,12 +95,15 @@ export default function ProblemDetails() {
     setRunLoading(true);
     setStatus("Running...");
     setOutput("");
+    console.log("👉 SENDING TO BACKEND:", { problemId, code, language });
+
     try {
       const { data } = await API.post("/run", {
         problemId: id,
         code,
         language,
       });
+
       
       const formattedOutput = data.results.map((res, i) => 
         `Case ${i+1}: ${res.passed ? 'Passed ✅' : 'Failed ❌'}\n` +
