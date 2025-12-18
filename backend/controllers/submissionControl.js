@@ -1,4 +1,4 @@
-const { execa } = require('execa');
+const execa = require("execa");      // ✅ Grabs the function directly (Correct)
 const fs = require('fs/promises');
 const path = require('path');
 const Submission = require('../models/Submission');
