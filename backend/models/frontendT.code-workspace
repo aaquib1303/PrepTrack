@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "../../frontendT"
+		},
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"tailwindCSS.emmetCompletions": true
+	}
+}

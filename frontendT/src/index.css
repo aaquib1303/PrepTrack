@@ -1,3 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ✅ GLOBAL BACKGROUND FIX */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  
+  /* darker, less brighter shade (Dark Gray/Slate) */
+  background-color: #111827; /* This is Gray-900 */
+  
+  /* Or try this for a slightly bluer "Night" tone: */
+  /* background-color: #0f172a; */ /* Slate-900 */
+
+  color: #f3f4f6; /* Default text color: Light Gray */
+  min-height: 100vh;
+}
+
+/* Scrollbar Styling (Optional: Makes scrollbar dark too) */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #111827; 
+}
+::-webkit-scrollbar-thumb {
+  background: #374151; 
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4b5563; 
+}

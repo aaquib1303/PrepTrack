@@ -52,12 +52,50 @@ const loginUser= async (req,res)=>{
             _id: exist._id,
             name: exist.name,
             email:exist.email,
+            isAdmin: exist.isAdmin, 
             token:genToken(exist._id)
         })
 
-    }catch(err){
-        res.status(500).json({message:"Server Error"});
-    }
+    } catch (error) {
+  console.log("🔥 LOGIN CRASH:", error); // 👈 Add this line!
+  res.status(500).json({ message: error.message });
+}
 }
 
-module.exports={registerUser,loginUser};
+
+// Get User Profile with Stats
+const getUserProfile = async (req, res) => {
+  try {
+    // 1. Find the user and 'populate' the solvedProblems array
+    // This replaces the IDs with the actual Question documents (title, difficulty, etc.)
+    const user = await User.findById(req.user._id)
+      .populate("solvedProblems", "title difficulty slug"); 
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // 2. Calculate Stats
+    const totalSolved = user.solvedProblems.length;
+    
+    const stats = {
+      Easy: user.solvedProblems.filter(p => p.difficulty === "Easy").length,
+      Medium: user.solvedProblems.filter(p => p.difficulty === "Medium").length,
+      Hard: user.solvedProblems.filter(p => p.difficulty === "Hard").length
+    };
+
+    res.json({
+      user: {
+        name: user.name,
+        email: user.email,
+        solvedProblems: user.solvedProblems, // Send the full list
+        stats: stats,
+        isAdmin: user.isAdmin,
+        totalSolved: totalSolved
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching profile", error: error.message });
+  }
+};
+
+module.exports = { registerUser, loginUser, getUserProfile };
