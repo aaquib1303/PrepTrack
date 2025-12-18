@@ -6,61 +6,47 @@ const Question = require('../models/Question');
 const User = require('../models/User');
 
 // This is our new, universal "worker"
-const executeCode = async (code, input, language) => {
-  console.log("--- FULL CODE TO BE EXECUTED ---", code);
-  const tempDir = path.join(__dirname, '..', 'temp');
-  await fs.mkdir(tempDir, { recursive: true });
-
-  let tempFile;
-  let command, args, tempExe;
-
-  // Set up the commands and file extensions
-  switch (language) {
-    case 'javascript':
-      tempFile = path.join(tempDir, `temp_${Date.now()}.js`);
-      command = 'node';
-      args = [tempFile];
-      break;
-    case 'python':
-      tempFile = path.join(tempDir, `temp_${Date.now()}.py`);
-      command = 'python';
-      args = [tempFile];
-      break;
-    case 'cpp':
-      tempFile = path.join(tempDir, `temp_${Date.now()}.cpp`);
-      tempExe = path.join(tempDir, `temp_${Date.now()}.exe`);
-      await fs.writeFile(tempFile, code); // Write the .cpp file
+const executeCode = async (filePath, inputPath, language) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let output;
       
-      try {
-        await execa('g++', [tempFile, '-o', tempExe]);
-      } catch (compileError) {
-        throw new Error(`Compilation Error: ${compileError.stderr}`);
+      if (language === "cpp") {
+        // 1. Define Output Path (executable)
+        const jobId = require("path").basename(filePath).split(".")[0];
+        const outPath = require("path").join(require("path").dirname(filePath), `${jobId}.out`);
+
+        // 2. Compile
+        // Use shell: true to handle permissions better in Docker
+        await execa("g++", [filePath, "-o", outPath], { shell: true });
+
+        // 3. Run
+        // < inputPath feeds the input file into the program
+        const { stdout } = await execa(outPath, [], { 
+           inputFile: inputPath,
+           shell: true 
+        });
+        output = stdout;
+
+      } else if (language === "python") {
+        const { stdout } = await execa("python3", [filePath], { 
+           inputFile: inputPath,
+           shell: true 
+        });
+        output = stdout;
       }
       
-      command = tempExe;
-      args = [];
-      break; // C++ is special, we've already written the file
-    default:
-      throw new Error(`Language "${language}" is not supported.`);
-  }
+      resolve(output);
 
-  // Write the file (for JS/Python)
-  if (language !== 'cpp') {
-    await fs.writeFile(tempFile, code);
-  }
-
-  // --- Execution Step ---
-  try {
-    const { stdout, stderr } = await execa(command, args, { input });
-    if (stderr) throw new Error(`Runtime Error: ${stderr}`);
-    return stdout.trim();
-  } catch (execError) {
-    throw new Error(`Runtime Error: ${execError.stderr || execError.message}`);
-  } finally {
-    // --- Cleanup Step ---
-    if (tempFile) await fs.unlink(tempFile);
-    if (tempExe) await fs.unlink(tempExe);
-  }
+    } catch (error) {
+      // 🛑 LOG THE REAL ERROR HERE
+      console.error("EXECUTION ERROR DETAILS:", error);
+      
+      // Fallback if stderr is empty
+      const errorMessage = error.stderr || error.message || "Unknown execution error";
+      reject(`Compilation Error: ${errorMessage}`);
+    }
+  });
 };
 
 // This is our new "manager"
