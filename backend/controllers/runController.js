@@ -1,39 +1,55 @@
 const { executeCode } = require('./submissionControl');
-const { generateFile } = require('../generateFile'); // 👈 Import this!
+const { generateFile } = require('../generateFile'); 
 const Question = require('../models/Question');
 
 const runSampleTests = async (req, res) => {
+  // 📍 CHECKPOINT 1: Verify request hit the server
+  console.log("🚀 [Backend] runSampleTests Hit!");
   const { problemId, code: userCode, language } = req.body;
+  console.log(`📦 Received: ID=${problemId}, Lang=${language}`);
 
   try {
+    // 📍 CHECKPOINT 2: Database Connection
+    console.log("🔍 Finding problem in DB...");
     const problem = await Question.findById(problemId);
-    if (!problem) return res.status(404).json({ message: 'Problem not found' });
-
-    // 1. Find the correct template
-    const template = problem.templates.find(t => t.language === language);
-    if (!template) return res.status(400).json({ message: 'Language template not found' });
-
-    // 2. Stitch the user's code into the template
-    const fullCode = template.code.replace(/(?:\/\/|\#) USER_CODE_HERE/, userCode);
     
-    // 3. Get Test Cases
-    const samples = problem.testCases ? problem.testCases.slice(0, 3) : [];
-    if (samples.length === 0) {
-        return res.status(400).json({ message: "No test cases found." });
+    if (!problem) {
+        console.error("❌ Problem NOT found in DB");
+        return res.status(404).json({ message: 'Problem not found' });
     }
+    console.log("✅ Problem found:", problem.title);
+
+    const template = problem.templates.find(t => t.language === language);
+    if (!template) {
+        console.error("❌ Template missing");
+        return res.status(400).json({ message: 'Language template not found' });
+    }
+
+    const fullCode = template.code.replace(/(?:\/\/|\#) USER_CODE_HERE/, userCode);
+    const samples = problem.testCases ? problem.testCases.slice(0, 3) : [];
+    
+    if (samples.length === 0) console.warn("⚠️ No test cases found!");
 
     let results = [];
     
-    // 4. ✅ Generate the Code File ONCE (it's the same for all test cases)
+    // 📍 CHECKPOINT 3: File Generation
+    console.log("📂 Generating code file...");
     const filePath = await generateFile(language, fullCode);
+    console.log(`✅ Code file created at: ${filePath}`);
 
-    for (const testCase of samples) {
-      // 5. ✅ Generate a temp Input File for this specific test case
+    for (const [i, testCase] of samples.entries()) {
+      console.log(`▶️ Running Test Case ${i + 1}...`);
+      
       const inputPath = await generateFile('txt', testCase.input);
-
-      // 6. Execute using the FILE PATHS, not the code
+      
+      // 📍 CHECKPOINT 4: Execution
+      // This is usually where it hangs if compilers are missing or loops are infinite
+      console.log(`⚙️ Executing code with input: ${inputPath}`);
+      
       const output = await executeCode(filePath, inputPath, language);
       
+      console.log(`✅ Output received: ${output}`); // Log the raw output
+
       const cleanOutput = output ? output.trim() : "";
       const cleanExpected = testCase.expectedOutput ? testCase.expectedOutput.trim() : "";
 
@@ -45,14 +61,14 @@ const runSampleTests = async (req, res) => {
       });
     }
 
+    console.log("📤 Sending results back to frontend...");
     res.json({ results });
 
   } catch (error) {
-    console.error("Run Error:", error);
-    // Send the actual error message back to the frontend
+    console.error("🔥 FATAL ERROR in runSampleTests:", error);
     res.status(500).json({ 
         message: 'Error executing code', 
-        output: error.toString() // Use toString() to capture the full error message
+        output: error.toString() 
     });
   }
 };
