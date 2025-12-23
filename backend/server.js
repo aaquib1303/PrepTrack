@@ -9,13 +9,10 @@ dotenv.config();
 connectDB();
 
 const app = express();
-app.use(cors({
-  origin: ["http://localhost:5173", "https://prep-track-phi.vercel.app"],
-  credentials: true
-}));
+app.use(cors());
 app.use(express.json());
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 
 const authRoutes = require("./routes/userRoutes");
 app.use("/api/auth", authRoutes);
