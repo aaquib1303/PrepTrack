@@ -31,7 +31,30 @@
 
 ## 📸 Screenshots
 
-*(Optional: Upload screenshots to your repository and link them here to showcase the UI)*
+![Login Page](./screenshots/login.png)
+*Secure login interface.*
+
+![Register Page](./screenshots/signup.png)
+*Secure Register interface.*
+
+![Home Page](./screenshots/home.png)
+*Problem Set with filters according to difficulty.*
+
+![Dashboard Page](./screenshots/profile.png)
+*The main dashboard showing user progress.*
+
+![Problems Page](./screenshots/problems.png)
+*The list of all problems.*
+
+![Problem Details Page](./screenshots/problemDetails.png)
+*The problem description and code editor.*
+
+![Leaderboard Page](./screenshots/leaderboard.png)
+*The global leaderboard based on number of problems solved.*
+
+![Admin Page](./screenshots/admin1.png)
+![Admin Page](./screenshots/admin2.png)
+*The Admin dashboard to create a new problem*
 
 ---
 
@@ -83,7 +106,7 @@ npm run dev
 # Client will run on http://localhost:5173
 ```
 
-## 🐳 Docker Deployment (Optional)
+## 🐳 Docker Deployment 
 The backend is fully Dockerized for production deployment (e.g., Render, AWS).
 
 Build & Run with Docker:
